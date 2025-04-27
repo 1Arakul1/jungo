@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Breed, Dog
-from .forms import DogForm
+from .models import Breed, Dog, Review  # Import Review
+from .forms import DogForm, ReviewForm  # Import ReviewForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
 from django.http import JsonResponse, Http404
@@ -9,6 +9,39 @@ from django.views.generic import TemplateView, ListView, CreateView, UpdateView,
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ValidationError
+
+class DogsListView(LoginRequiredMixin, ListView):
+    model = Dog
+    template_name = 'dogs/dogs_list.html'
+    context_object_name = 'dogs'
+    paginate_by = 6
+
+    def get_queryset(self):
+        return Dog.objects.all().prefetch_related('reviews__user')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Список всех собак'
+        context['review_form'] = ReviewForm()  # Добавляем форму отзыва
+        return context
+
+    def post(self, request, *args, **kwargs):
+        dog_id = request.POST.get('dog_id')
+        dog = get_object_or_404(Dog, pk=dog_id)
+        form = ReviewForm(request.POST)
+
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.dog = dog
+            review.user = request.user
+            review.save()
+            messages.success(request, 'Спасибо за ваш отзыв!')
+            return redirect(reverse('dogs:dogs_list') + f'?page={request.GET.get("page", 1)}')  # Redirect to the same page
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+            context = self.get_context_data()
+            context['review_form'] = form
+            return self.render_to_response(context)
 
 class AddDogToProfileView(LoginRequiredMixin, View):
     def post(self, request, dog_id):
@@ -21,7 +54,7 @@ class AddDogToProfileView(LoginRequiredMixin, View):
             dog.save()
             messages.success(request, f"Собака '{dog.name}' успешно добавлена в ваш профиль.")
 
-        return redirect(reverse('dogs:dogs_list'))  # Перенаправляем на all_dogs
+        return redirect(reverse('dogs:dogs_list'))  # Перенаправляем на dogs_list
 
 class RemoveDogFromProfileView(LoginRequiredMixin, View):
     def post(self, request, dog_id):
@@ -55,22 +88,6 @@ class BreedsView(LoginRequiredMixin, TemplateView):
         context['title'] = title
         context['breeds_data'] = breeds_data
         return context
-
-
-class DogsListView(LoginRequiredMixin, ListView):
-    model = Dog
-    template_name = 'dogs/dogs_list.html'
-    context_object_name = 'dogs'
-    paginate_by = 6
-
-    def get_queryset(self):
-        return Dog.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Список всех собак'
-        return context
-
 
 class DogCreateView(LoginRequiredMixin, CreateView):
     model = Dog
@@ -145,21 +162,6 @@ class DogReadView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Информация о собаке'
         context['is_owner'] = self.object.owner == self.request.user
-        return context
-
-
-class AllDogsView(LoginRequiredMixin, ListView):
-    model = Dog
-    template_name = 'dogs/all_dogs.html'
-    context_object_name = 'dogs'
-    paginate_by = 6
-
-    def get_queryset(self):
-        return Dog.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Все собаки'
         return context
 
 # Добавьте или обновите ProfileView

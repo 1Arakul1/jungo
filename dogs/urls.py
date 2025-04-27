@@ -4,12 +4,11 @@ from .views import (
     AddDogToProfileView,
     IndexView,
     BreedsView,
-    DogsListView,
+    DogsListView,  # Make sure DogsListView is imported
     DogCreateView,
     DogUpdateView,
     DogDeleteView,
     DogReadView,
-    AllDogsView,
     RemoveDogFromProfileView
 )
 
@@ -19,7 +18,6 @@ urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('breeds/', BreedsView.as_view(), name='breeds'),
     path('dogs/', DogsListView.as_view(), name='dogs_list'),
-    path('dogs/all/', AllDogsView.as_view(), name='all_dogs'),
     path('dogs/create/', DogCreateView.as_view(), name='dog_create'),
     path('dogs/<int:pk>/', DogReadView.as_view(), name='dog_read'),
     path('dogs/<int:pk>/update/', DogUpdateView.as_view(), name='dog_update'),

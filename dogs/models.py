@@ -1,10 +1,20 @@
-# dogs/models.py
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from datetime import date
 from django.utils.html import format_html  # Для отображения HTML в админке
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+class Review(models.Model):
+    dog = models.ForeignKey('Dog', on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField()
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Отзыв от {self.user.username} о {self.dog.name}'
 
 User = get_user_model()
 
