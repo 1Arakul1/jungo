@@ -9,7 +9,9 @@ from .views import (
     DogUpdateView,
     DogDeleteView,
     DogReadView,
-    RemoveDogFromProfileView
+    RemoveDogFromProfileView,
+    ReviewUpdateView,  # Добавлено
+    ReviewDeleteView   # Добавлено
 )
 
 app_name = 'dogs'
@@ -24,4 +26,6 @@ urlpatterns = [
     path('dogs/<int:pk>/delete/', DogDeleteView.as_view(), name='dog_delete'),
     path('dogs/<int:dog_id>/add_to_profile/', AddDogToProfileView.as_view(), name='add_to_profile'),
     path('dogs/<int:dog_id>/remove_from_profile/', RemoveDogFromProfileView.as_view(), name='remove_dog_from_profile'),
+    path('reviews/<int:pk>/update/', ReviewUpdateView.as_view(), name='review_update'),  # Добавлено
+    path('reviews/<int:pk>/delete/', ReviewDeleteView.as_view(), name='review_delete'),   # Добавлено
 ]

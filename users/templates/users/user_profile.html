@@ -13,11 +13,10 @@
       <li class="nav-item" role="presentation">
         <a class="nav-link" id="dogs-tab" data-toggle="tab" href="#dogs" role="tab" aria-controls="dogs" aria-selected="false">Ваши собаки</a>
       </li>
-      {% if is_superuser %}
-        <li class="nav-item" role="presentation">
-          <a class="nav-link" id="users-tab" data-toggle="tab" href="#users" role="tab" aria-controls="users" aria-selected="false">Пользователи</a>
-        </li>
-      {% endif %}
+      <!--  Убрали условие, чтобы отображать вкладку всегда -->
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="users-tab" data-toggle="tab" href="#users" role="tab" aria-controls="users" aria-selected="false">Пользователи</a>
+      </li>
     </ul>
 
     <div class="tab-content" id="myTabContent">
@@ -39,7 +38,7 @@
       <!-- Вкладка с информацией о собаках -->
       <div class="tab-pane fade" id="dogs" role="tabpanel" aria-labelledby="dogs-tab">
         <h2 class="text-center mb-3">Ваши собаки:</h2>
-        <div id="dog-cards" class="row row-cols-1 row-cols-md-5 g-4">
+        <div id="dog-cards" class="row row-cols-1 row-cols-md-3 g-4">
           {% for dog in dogs %}
             <div class="col" id="dog-card-{{ dog.id }}">  <!-- Добавили id для легкого доступа к карточке -->
               <div class="card h-100 d-flex flex-column">
@@ -68,15 +67,17 @@
         </div>
       </div>
 
-      <!-- Вкладка со списком пользователей (только для суперпользователей) -->
-      {% if is_superuser %}
-        <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
-          <h2 class="text-center mb-3">Список пользователей:</h2>
-          <a href="{% url 'users:user_list' %}" class="btn btn-primary"> Перейти к списку пользователей</a>
-        </div>
-      {% endif %}
+      <!-- Вкладка со списком пользователей -->
+      <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+        <h2 class="text-center mb-3">Список пользователей:</h2>
+        <a href="{% url 'users:user_list' %}" class="btn btn-primary"> Перейти к списку пользователей</a>
+      </div>
     </div>
   </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
   <script>
     function removeFromProfile(dogId) {
         console.log(`Attempting to remove dog with ID: ${dogId}`);
@@ -122,5 +123,12 @@
             });
         }
     }
+
+    $(function () {
+      $('#myTab a').on('click', function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+      })
+    });
 </script>
 {% endblock %}

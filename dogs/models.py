@@ -39,6 +39,8 @@ class Dog(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='dogs', verbose_name='Владелец')
     birth_date = models.DateField(verbose_name='Дата рождения', null=True, blank=True)
 
+    views_count = models.PositiveIntegerField(default=0, verbose_name='Количество просмотров') # Добавлено поле счетчика просмотров
+
     def __str__(self):
         return self.name
 

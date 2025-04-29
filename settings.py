@@ -13,7 +13,7 @@ load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'e2mj4k7r9xgfvzwyuhqbdpci5n3tlsao681f0jesrm2qnxlopyy')
-DEBUG = True  # В production должно быть False
+DEBUG = False  # В production должно быть False
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.1.2', '178.206.254.190']  # Замени на свой IP
 
 # Application definition

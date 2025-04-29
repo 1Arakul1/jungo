@@ -1,3 +1,4 @@
+# users/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout as django_logout
@@ -23,6 +24,16 @@ from django.template import Context, Template
 from django.http import HttpResponse
 from django.utils.html import strip_tags
 from django.contrib.auth.decorators import login_required, user_passes_test # Импортируем декораторы
+from django.contrib.auth.models import Permission
+class UserDetailView(LoginRequiredMixin, TemplateView):  # Убрали UserPassesTestMixin
+    template_name = 'users/user_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = self.kwargs['pk']
+        context['viewed_user'] = get_object_or_404(User, pk=user_id)
+        context['dogs'] = Dog.objects.filter(owner=context['viewed_user'])
+        return context
 
 # --- User Authentication Views ---
 
@@ -222,14 +233,11 @@ class PasswordResetRequestView(FormView):
 
 # --- User Management Views (Superuser Only) ---
 
-class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+class UserListView(LoginRequiredMixin, ListView):
     model = User
     template_name = 'users/user_list.html'
     context_object_name = 'users'
     paginate_by = 10
-
-    def test_func(self):
-        return self.request.user.is_superuser
 
     def get_queryset(self):
         queryset = User.objects.all()  # Get all users, including inactive
@@ -244,6 +252,8 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Список пользователей'
         context['q'] = self.request.GET.get('q', '')  # Pass the search query to the template
+        context['is_superuser'] = self.request.user.is_superuser  # Передаем флаг суперпользователя в шаблон
+        context['is_staff'] = self.request.user.is_staff
         return context
 
 
@@ -294,24 +304,17 @@ def generate_random_password(length=12):
     password = ''.join(secrets.choice(alphabet) for i in range(length))
     return password
 
+# --- User Detail View ---
+class UserDetailView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/user_detail.html'
 
-def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    # Ensure the search query is always included in the context
-    context['q'] = self.request.GET.get('q', '')  # Pass the search query to the template
-    return context
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
 
-
-def render_to_response(self, context, **response_kwargs):
-    # Check if it's an AJAX request
-    if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Render only the table body content
-        users = context['users']
-        template = Template(
-            "{% for user in users %}<tr><td>{{ user.username }}</td><td>{{ user.email }}</td><td>{{ user.is_staff|yesno:\"Да,Нет\" }}</td><td><form method=\"post\" action=\"{% url 'users:user_delete' user.pk %}\">{% csrf_token %}<button type=\"submit\" class=\"btn btn-danger\">Удалить</button></form><form method=\"post\" action=\"{% url 'users:user_set_admin' user.pk %}\">{% csrf_token %}<button type=\"submit\" class=\"btn btn-secondary\">Сделать {% if user.is_staff %}Не админом{% else %}Админом{% endif %}</button></form></td></tr>{% empty %}<tr><td colspan=\"4\">Пользователи не найдены.</td></tr>{% endfor %}")
-        context = Context(context)
-        table_rows = template.render(context)
-        return HttpResponse(table_rows)
-    else:
-        # Render the full page template
-        return super().render_to_response(context, **response_kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = self.kwargs['pk']
+        user = get_object_or_404(User, pk=user_id)
+        context['viewed_user'] = user
+        context['dogs'] = Dog.objects.filter(owner=user)
+        return context

@@ -1,3 +1,4 @@
+# users/urls.py
 from django.urls import path
 from . import views
 from .views import (
@@ -12,7 +13,8 @@ from .views import (
     PasswordResetRequestView,
     UserListView,
     user_delete,
-    user_set_admin
+    user_set_admin,
+    UserDetailView
 )
 
 app_name = 'users'
@@ -32,11 +34,10 @@ urlpatterns = [
 
     # --- Password Reset URLs ---
     path('password_reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
-    # REMOVE THE CONFIRM PATH:
-    #path('password_reset/confirm/<str:token>/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     # --- User Management URLs (Superuser Only) ---
     path('list/', UserListView.as_view(), name='user_list'),
     path('delete/<int:pk>/', views.user_delete, name='user_delete'),
     path('set_admin/<int:pk>/', views.user_set_admin, name='user_set_admin'),
+    path('detail/<int:pk>/', UserDetailView.as_view(), name='user_detail'),  # Добавляем URL для просмотра деталей
 ]
